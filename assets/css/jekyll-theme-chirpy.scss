@@ -1,0 +1,52 @@
+---
+---
+// Tweaks based on https://andrei.fokau.se/dark-mode-jekyll
+@import 'main';
+
+/* append your custom style below */
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-mode]), html[data-mode=dark], * {
+    .highlight {
+      pre {
+        font-size: .70rem;
+      }
+      .nf {
+        color: #079bd9;
+      }
+      .o, .mi, .mf {
+        color: #3792b8 !important;
+      }
+      .p {
+        color: #69a1b9 !important;
+      }
+      .k, .kn, .kr, .kp, .kv, .ow {
+        color: rgb(255, 123, 114) !important;
+      }
+      .c, .c1, .cm {
+        color: #525252 !important;
+      }
+    }
+  }
+}
+
+.code-header button:hover {
+  background-color: transparent !important;
+}
+.code-header button {
+  border: none !important;
+}
+
+.highlight .lineno {
+  opacity: 0.2;
+}
+
+.sidebar-bottom {
+  .icon-border {
+    opacity: 0;
+  }
+}
+
+.embed-video {
+  max-width: 500px;
+}

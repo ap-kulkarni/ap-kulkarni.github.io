@@ -45,6 +45,13 @@ jobs:
           ruby-version: 3.3
           bundler-cache: true
 
+# Tweaks based on https://andrei.fokau.se/dark-mode-jekyll
+      - name: Bundle
+        run: bundle
+
+      - name: Lock
+        run: cat Gemfile.lock
+########################################################
       - name: Build site
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
         env:
