@@ -14,16 +14,16 @@ timezone: Asia/Kolkata
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Tech Learnings # the main title
+title: Amey Kulkarni # the main title
 
-tagline: A blog about my tech learnings # it will display as the subtitle
+tagline: A journal of my tech learnings # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   In this blog, I write about things I learned in tech world.
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
-url: "https://ap-kulka.github.io"
+url: "https://ap-kulkarni.github.io"
 
 github:
   username: ap-kulkarni # change to your GitHub username
