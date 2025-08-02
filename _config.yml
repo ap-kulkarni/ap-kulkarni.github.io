@@ -150,7 +150,10 @@ pwa:
 paginate: 10
 
 # The base URL of your site
-baseurl: ""
+# There's bug (not sure exactly where) that makes local jekyll site and github pages look different
+# On github pages, the layout is garbled. Keeping 'baseurl' commented somehow makes this go away
+# https://stackoverflow.com/q/48197580
+# baseurl: ""
 
 # ------------ The following options are not recommended to be modified ------------------
 
