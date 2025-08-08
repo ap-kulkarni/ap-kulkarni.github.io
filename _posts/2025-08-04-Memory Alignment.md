@@ -1,8 +1,7 @@
 ---
 layout: post
 title: "Memory Alignment"
-tag: memory management
-tags: golang
+tags: golang memory+management
 ---
 
 Being a self taught programmer, naive me always thought that memory occupied by structs is equal to sum of memory occupied by individual fields in structs. Well... I was wrong. Moreover, the memory occupied can change if the order of fields change in the definition of structs. This was a more shocker for me.
@@ -76,30 +75,45 @@ Core 1 modifies integer 'i'. The value is updated in Core 1's cache (L1 cache). 
 #### Memory alignment in action
 Now, we know how structs occupy more memory due to padding. To understand exactly how many bytes are padded by the compiler, we need to refer Go spec's section on [Size and Alignment guarantees.](https://go.dev/ref/spec#Size_and_alignment_guarantees) Below is the size guarantee for fields in structs defined in our example.
 
-| Type          | Size (in bytes)|
-| ------------- | ------------- |
-| int8          | 1             |
-| int16         | 2             |
-| float64       | 8             |
+| **Type**       |** Size (in bytes)**|
+| :------------- | :-------------:    |
+| int8           | 1                  |
+| int32          | 4                  |
+| float64        | 8                  |
 
-For alignment guarantee of structs, the go spec makes following statement:
+The go spec makes following alignment guarantees:
+>
+> - For a variable x of any type: unsafe.Alignof(x) is at least 1.
+> - For a variable x of struct type: unsafe.Alignof(x) is the largest of all the values unsafe.Alignof(x.f) for each field f of x, but at least 1.
+> - For a variable x of array type: unsafe.Alignof(x) is the same as the alignment of a variable of the array's element type.
 
-> For a variable x of struct type: unsafe.Alignof(x) is the largest of all the values unsafe.Alignof(x.f) for each field f of x, but at least 1.
+The takeaway here is, for a struct, the alignment guarantee is equal to that of largest sized field.
+
 
 Now, with this knowledge under the sleeve, let's revisit our program earlier and see why the structs occupied more memory. Let's look at DemoStruct1.
 ``` go
 type DemoStruct1 struct {
 	a int8
 	b int64
-	c int16
-}
-
-d1 := DemoStruct1{
-		a: 1,
-		b: 1,
-		c: 1,
+	c int32
 }
 ```
-Sizes (in bytes) of a,b and c are 1, 8 and 2 respectively. That means, b is largest field in the struct. So, compiler will make whole struct 8 byte aligned. Now suppose, we start storing the struct contents from address 64 (note, this is 8 byte aligned). a will occupy one byte. i.e. byte at address 64 will be occupied by a. Next, if we now start placing contents of b from 65, it won't be 8 byte aligned. So, we need to start storing contents of b from address 72 till 79, making it 8 byte aligned. So, bytes from 65-71 are padded bytes. Further, c takes 2 bytes to store, taking byte numbers 80 and 81. The compiler is still not done storing whole struct. Remember, we need to make whole struct 8 byte aligned. Let's say we need to create another struct of type DemoStruct1, we can't start storing it from 82 since it's not 8 byte aligned. The next struct can be written from 88 to make it 8 byte aligned. So, in previous struct the compiler pads additional 6 bytes.
+Sizes (in bytes) of fields 'a', 'b' and 'c' are 1, 8 and 4 respectively. That means, 'b' is largest field in the struct. So, compiler will make whole struct 8 byte aligned. Now suppose, it starts storing the struct contents from address 64 (note, this is 8 byte aligned). 'a' will occupy one byte. i.e. byte at address 64 will be occupied by 'a'. Next, if compiler now starts placing contents of 'b' from 65, it won't be 8 byte aligned. So, compiler needs to start storing contents of 'b' from address 72 till 79, making it 8 byte aligned. So, bytes from 65-71 are padded bytes. Next, 'c' takes 4 bytes to store, taking byte numbers from 80 till 83. However, the compiler is still not done storing whole struct. Remember, it needs to make whole struct 8 byte aligned. Let's say we need to create another struct of type DemoStruct1, the compiler can't start storing it from 84 since it's not 8 byte aligned. The next struct has to be written from 88 to make it 8 byte aligned. So, in previous struct the compiler pads bytes from 84-87.
+So, 'a' takes 1 + 7 padded bytes; b takes 8 bytes and c takes 4 + additional 4 padded bytes, resulting in total 24 bytes occupied by the struct
 
-So, a takes 1+7 bytes; b takes 8 bytes and c takes 2+6 bytes, resulting in total 24 bytes occupied.
+On similar lines, memory distribution of 'Demostruct2' can be explained.
+``` go
+type DemoStruct2 struct {
+	a int8
+	b int32
+	c float64
+}
+```
+Again, largest field here takes 8 bytes so whole struct needs to be 8 byte aligned. Suppose compiler starts storing from byte number 64. 'a' needs 1 byte to store. However, next field 'b' needs to 4 byte aligned, so compiler pads 3 bytes to 'a'.
+This makes 'a' take 4 bytes from 64-67. 'b' takes 4 bytes from 68-71. In this case, compiler can start storing 'c' immediately after 'b' (72-79 in this case) because the number of bytes taken by 'a' and 'b' combined are 8, making next address automatically 8 byte aligned. So far, 'a', 'b' and 'c' combined take 16 bytes to store. Since next available address (80 in this case) is already 8 byte aligned, there is no need of padding at the end. So the result is, DemoStruct2 takes 16 bytes to store.
+
+#### Summary
+
+So in summary, memory alignment is done to prevent extra memory calls when dealing with data stored on memory.
+It's done by padding some extra bytes to the data so that addresses align to a specific value.
+How it's done largely depends on the hardware architecture and compiler. Should you care/worry about it? Only if you need to squeeze out that last ounce of performance for you application.
